@@ -66,12 +66,12 @@ define EReal E -> e || _;
 
 define Alternations N2M  .o. EOmit .o. EReal .o. ThreeLetter .o. TwoLetter .o. SingleP .o. SingleTK .o. DoublePTK ;
 
-# ?
+# объединяем все существующие аффиксы
 define Affixes Nominatives .o. Genetive .o. OtherCases .o. NumberInfl .o. Alternations .o. Phonetics;
 
-# стирание границ
+# стирание границ (удаляем границы морфем, схлопываем гранцы, чтобы получить слова)
 define Cleanup "^" -> 0 || _ ;
 
-# ?
+# делаем одну грамматику, объединяем все правила
 define Grammar Input .o. Affixes .o. Cleanup ;
 push Grammar
