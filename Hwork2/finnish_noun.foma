@@ -1,0 +1,171 @@
+# сохранение преобразователей (согласных, гласных передних, нейтральных и задних гласные в целом и буквы) в переменную
+# определяем согласные, гласные разного ряда (и буквы в целом)
+define Consonant b | c | d | f | g | h | j | k | l | m | n | p | q | r | s | t | v | w | x | z ;
+define FrontVowel ä | ö | y ;
+define NeutralVowel e | i ;
+define BackVowel a | o | u ;
+define Vowel FrontVowel | NeutralVowel | BackVowel | A | E;
+define Letter Vowel | Consonant;
+
+# вводим падежи и числа (но падежей всего 14, а не 5, локативных 6, таким образом, нужно добавить еще 4 локативных)
+define Case "+Nom" | "+Gen" | "+Part" | "+In" | "+All" | "+El" | "+Ill" | "+Ad" | "+Abl" ;
+define Number "+Sg" | "+Pl" ; 
+
+# определение класс передних и задних основ 
+define FrontStem [Consonant* [ FrontVowel | NeutralVowel ] ]+ Consonant*;
+define BackStem [Consonant* [ BackVowel | NeutralVowel ] ]* [Consonant* BackVowel] [Consonant* [ BackVowel | NeutralVowel ] ]* Consonant*;
+define Stem Letter+;
+
+define Input Stem Number Case;
+
+# обозначение номинатива (в данном падеже число и падеж выражается -0/'t')
+define NomPl "+Pl" "+Nom" -> "^" t || _ ;
+define NomSg "+Sg" "+Nom" -> "^" || _ ;
+define Nominatives NomPl .o. NomSg ;
+
+# обозначаем маркирование генетива (окончание отличается от дефолтного в случае, если идут две гласные подряд + маркер множественного числа)
+define GenDen "+Gen" -> d e n || Vowel Vowel "+Pl" _ ;
+define Gen "+Gen" -> E n || _ ;
+define Genetive GenDen .o. Gen ;
+
+# маркирование партитива ( t A в случае СГ(Г/С)Число и просто A во всех остальных случаях)
+define PartTa "+Part" -> t A || [ Consonant Vowel Vowel | Consonant ] Number _ ;
+define PartA "+Part" -> A || _ ;
+
+# маркирование локативных падежей (уже был добавлен инессив и аллатив + эллатив)
+# в первоначальном коде была опечатка: в аллативе дожно быть окончание E --> замена А на Е 
+
+
+# инессив
+define Inessive "+In" -> s s A || _ ;
+
+# аллатив
+define Allative "+All" -> l l E || _ ;
+
+# эллатив
+define Elative "+El" -> s t A || _ ;
+
+# адессив
+define Adessive "+Ad" -> l l A || _ ;
+
+# аблатив
+define Ablative "+Abl" -> l t A || _ ;
+
+
+# обозначаем локативные падежи (кроме иллатива)
+define LocativeCases Inessive .o. Allative .o. Elative .o. Adessive .o. Ablative ;
+
+
+# иллатив
+# дополнительно можно указать, что при наличии дифтоногов в слове маркирование будет проходить не по правилам -Vn, а по -hVn, но так как в грамматике это не указано эксплицитно, то это не будет указано, так как сайтам я не доверяю
+# задаем тип маркирование -Vn (короткий гласный) для единстсвенного числа (чтобы ничего не дублировалось с другой формой обозначаем количество слогов)
+
+define Illo "+Sg" "+Ill" -> "^" o n || Vowel + Consonant + o _ ;
+define Illu "+Sg" "+Ill" -> "^" u n || Vowel + Consonant + u _ ;
+define Illi "+Sg" "+Ill" -> "^" i n || Vowel + Consonant + i _ ;
+define Ille "+Sg" "+Ill" -> "^" e n || Vowel + Consonant + e _ ;
+define Illa "+Sg" "+Ill" -> "^" a n || Vowel + Consonant + e* a _ ;
+define Illy "+Sg" "+Ill" -> "^" y n || Vowel + Consonant + y _ ;
+define Illä "+Sg" "+Ill" -> "^" ä n || Vowel + Consonant + ä _ ;
+define Illö "+Sg" "+Ill" -> "^" ö n || Vowel + Consonant + ö _ ;
+
+# здесь закомментированы попытки создать правила с дифтонгами
+# define Illo "+Sg" "+Ill" -> "^" o n || [ Consonant | NeutralVowel | FrontVowel | a ] o _ ;
+# define Illu "+Sg" "+Ill" -> "^" u n || [ Consonant | FrontVowel ] u _ ;
+# define Illi "+Sg" "+Ill" -> "^" i n || Consonant i _ ;
+# define Ille "+Sg" "+Ill" -> "^" e n || [ Consonant | FrontVowel | BackVowel ] e _ ;
+# define Illa "+Sg" "+Ill" -> "^" a n || [ Consonant | FrontVowel | NeutralVowel | o | u ] a _ ;
+# define Illy "+Sg" "+Ill" -> "^" y n || [Consonant | NeutralVowel | BackVowel ] y _ ;
+# define Illä "+Sg" "+Ill" -> "^" ä n || Consonant ä _ ;
+# define Illö "+Sg" "+Ill" -> "^" ö n || [ Consonant | NeutralVowel | BackVowel | ä ] ö _ ;
+
+
+# задаем маркирование -hVn для единственного числа (если есть моносиллабизм, вообще, можно добавить сюда еще и дифтонги для улучшения, если это сооствествует реальности)
+
+define Illää "+Sg" "+Ill" -> "^" h ä n || .#. Consonant* Vowel* ä _ ;
+define Illaa "+Sg" "+Ill" -> "^" h a n || .#. Consonant* Vowel* a _ ;
+define Illuu "+Sg" "+Ill" -> "^" h u n || .#. Consonant* Vowel* u _ ;
+define Illoo "+Sg" "+Ill" -> "^" h o n || .#. Consonant* Vowel* o _ ;
+define Illee "+Sg" "+Ill" -> "^" h e n || .#. Consonant* Vowel* e _ ;
+define Illöö "+Sg" "+Ill" -> "^" h ö n || .#. Consonant* Vowel* ö _ ;
+define Illii "+Sg" "+Ill" -> "^" h i n || .#. Consonant* Vowel* i _ ;
+define Illyy "+Sg" "+Ill" -> "^" h y n || .#. Consonant* Vowel* y _ ;
+
+
+# здесь закомментированы правила, связанные с дифтонгами, продолжение(так как я не была уверена, пользуются ли ими, то попыталась потестировать)
+# define Illuu "+Sg" "+Ill" -> "^" h u n || [ u | i | o | e | a ]* u _ ;
+# define Illoo "+Sg" "+Ill" -> "^" h o n || [ u | o ] o _ ;
+# define Illee "+Sg" "+Ill" -> "^" h e n || [ i | e ] e _ ;
+# define Illyo "+Sg" "+Ill" -> "^" h ö n || y ö _ ;
+# define Illii "+Sg" "+Ill" -> "^" h i n || [ FrontVowel | e | i | BackVowel ] i _ ;
+
+
+# задаем маркирование множественного числа (нужно учитывать, что для анализа берется заданная основа, поэтому в файле лежат основы для множественного числа)
+# -hin будем маркировать двумя способами для того, чтобы не было конфликтов с полисллабическим -siin
+
+define IllPHvn "+Ill" -> h i n || Consonant Vowel "+Pl" _ ;
+define IllPhvn2 "+Ill" -> h i n || .#. Consonant* Vowel + "+Pl" _ ;
+define IllPn "+Ill" -> i n || Consonant "+Pl" _ ;
+
+# задаем -seen/-siin для полисилабических конструкций, заканчивающихся на долгий гласный
+
+define Illdp "+Ill" -> s i i n || Vowel Consonant + [ a a | e e | o o | u u | i i | ä ä | ö ö | y y ] "+Pl" _ ;
+define Ilds "+Sg" "+Ill" -> s e e n || Vowel Consonant + [ a a | e e | o o | u u | i i | ä ä | ö ö | y y ] _ ;
+
+# получаем иллатив
+define Illative Illo .o. Illu .o. Illi .o. Ille .o. Illa .o. Illy .o. Illä .o. Illö .o. Illää .o. Illaa .o. Illuu .o. Illoo .o. Illee .o. Illöö .o. Illii .o. Illyy .o. IllPHvn .o. IllPhvn2 .o. IllPn .o. Illdp .o. Ilds ;
+
+# define IllVsn "+Ill" -> Vowel n || Vowel "+Sg" _ ;
+# define IllVpn "+Ill" -> i n || [ Consonant i ] _ ;
+# define IllPHn  "+Pl" "+Ill" -> h i n || Vowel "+Pl" _ ;
+# define IllHsvn "+Ill" -> h Vowel n || Vowel [ Vowel ] _ ;
+# define IllPs "+Pl" "+Ill" -> s i i n || Vowel "+Pl" _ ;
+# define IllVsn "+Sg" "+Ill" -> Vowel n || Vowel "+Sg" _ ;
+# define Illative IllVsn .o. IllVpn ;
+
+# обозначаем все прописанные выше падежи
+
+define OtherCases PartTa .o. PartA .o. LocativeCases .o. Illative ;
+
+# чередование гласных в основах
+# задаем маркирование чисел (единственное число - ^, множественное - прибавление аффикса i )
+# ä/i перед аффиксом плюралиса удаляются, a меняется на о в позиции (a/e/i)ГС_ перед аффиксом плюралиса, опускается если первые гласные u/o 
+# a меняется на о 
+define Sg "+Sg" -> "^" || _ ;
+define OmitA ä -> 0, i -> 0 || _ "+Pl";
+define Ai2Oi a -> o || [ a | e | i ] Vowel* Consonant+ _ "+Pl";
+define Ai2i a -> 0 || [ o | u ] Vowel* Consonant+ _ "+Pl";
+define OmitFirst Vowel -> 0 || _ Vowel "+Pl" Consonant;
+define Pl "+Pl" -> "^" i || _ ;
+
+define NumberInfl Sg .o. OmitA .o. Ai2i .o. Ai2Oi .o. OmitFirst .o. Pl ;
+
+# корень с лабиальными гласными не измененяется, а в множетсвенном числе i меняется на j между гласными
+# применение правил на гласные переднего/заденого ряда
+define JotPl i -> j || Vowel "^"* _ "^"* Vowel ;
+define HarmonyBack A -> a || BackStem "^" Letter* _;
+define HarmonyFront A -> ä || FrontStem "^" Letter* _;
+
+define Phonetics JotPl .o. HarmonyBack .o. HarmonyFront ;
+
+# чередования согласных в основе (правила показывают, на что меняются различные согласные на границе с другой морфемой и в каком окружении это происходит)
+define DoublePTK p p -> p , t t -> t , k k -> k || Letter _ "^"* Vowel "^"* Consonant [ .#. | Consonant ] ;
+define SingleP p -> v || Vowel _ "^"* Vowel "^"* Consonant [ .#. | Consonant ] ;
+define SingleTK t -> d , k -> 0 || Letter _ "^"* Vowel "^"* Consonant [ .#. | Consonant ] ; 
+define TwoLetter m p -> m m , n t -> n n , n k -> n g , l t -> l l , r t -> r r || Letter _ "^"* Vowel "^"* Consonant [ .#. | Consonant ] ;
+define ThreeLetter l k e -> l j e , r k e -> r j e , h k e -> h j e , u k u -> u v u || Letter _ "^"* Consonant [ .#. | Consonant ] ;
+define N2M i n -> i m , t ö n -> t t ö m || _ "^" Vowel;
+define EOmit E -> 0 || Vowel "^" _;
+define EReal E -> e || _;
+
+define Alternations N2M  .o. EOmit .o. EReal .o. ThreeLetter .o. TwoLetter .o. SingleP .o. SingleTK .o. DoublePTK ;
+
+# объединяем все существующие аффиксы для падежей, чисел, фонетических вариаций, чередований 
+define Affixes Nominatives .o. Genetive .o. OtherCases .o. NumberInfl .o. Alternations .o. Phonetics;
+
+# удаляем границы морфем, схлопываем гранцы, чтобы получить слова - стирание
+define Cleanup "^" -> 0 || _ ;
+
+# делаем одну грамматику, объединяем все правила композицией
+define Grammar Input .o. Affixes .o. Cleanup ;
+push Grammar
